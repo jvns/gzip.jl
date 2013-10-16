@@ -5,6 +5,10 @@ end
 
 BitStream(io::IOStream) = BitStream(io, BitVector(0))
 
+function read_header(io::IOStream)
+    assert(readbytes(io, 2) == [0x1f, 0x8b])
+end
+
 function make_bitvector(n::Uint8)
     bits = BitVector(8)
     for i=1:8

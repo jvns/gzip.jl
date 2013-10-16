@@ -7,5 +7,5 @@ let
   @test read_gzip_byte(bs, 5) == 31
   @test read_gzip_byte(bs, 5) == 24
   @test read_gzip_byte(bs, 4) == 2
-  read_gzip_byte(bs, 5)::Uint8
+  close(file)
 end
