@@ -129,5 +129,34 @@ function read_huffman_stream(stream)
     return (n_lit, n_dist, n_len)
 end
 
+function create_code_table(hclens)
+    # List of labels from the gzip spec. I know right.
+    labels = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]
+    sorted_pairs = sort([x for x=zip(hclens, labels)])
+    answer = Array(Uint16, length(hclens))
+    prev_code_len = 0
+    for (i, (code_len, label)) = enumerate(sorted_pairs)
+        if i == 1
+            answer[i] = 0
+        elseif code_len == prev_code_len
+            answer[i] = answer[i-1] + 1
+        else
+            answer[i] = (answer[i-1] + 1) << 1
+        end
+        prev_code_len = code_len
+    end
+    # Sorry =(
+    code_table = [(label, make_bit_vector(ans, code_len)) for (ans, (code_len, label)) = zip(answer, sorted_pairs)]
+    return code_table
+end
+
+function make_bit_vector(n::Any, len::Any)
+    vec = BitVector(int(len))
+    for i=1:len
+        vec[len - i + 1] = n & 1
+        n >>= 1
+    end
+    return vec
+end
 #read_huffman_stream(file)
 
