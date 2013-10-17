@@ -42,3 +42,16 @@ let
   close(file)
 end
 
+let
+  file = open("gunzip.c.gz", "r")
+  h = read(file, GzipFile)
+  bs = BitStream(file)
+  bf = read(bs, BlockFormat)
+
+  # These are the real values!
+  @test read_gzip_byte(bs, 5) == 23
+  @test read_gzip_byte(bs, 5) == 27
+  @test read_gzip_byte(bs, 4) == 8
+  close(file)
+end
+
