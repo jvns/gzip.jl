@@ -9,3 +9,13 @@ let
   @test read_gzip_byte(bs, 4) == 2
   close(file)
 end
+
+let
+    flags = 0b10001
+    @test has_ext(flags)
+    @test !has_crc(flags)
+    @test !has_extra(flags)
+    @test !has_name(flags)
+    @test has_comment(flags)
+end
+

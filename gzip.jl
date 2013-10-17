@@ -3,6 +3,32 @@ type BitStream
     bv::BitVector
 end
 
+typealias GzipFlags Uint8
+
+type GzipHeader
+  id::Vector{Uint8} # length 2
+  compression_method::Uint8
+  flags::GzipFlags
+  mtime::Vector{Uint8} # length 4
+  extra_flags::Vector{Uint8}
+  os::Vector{Uint8}
+end
+
+has_ext(flags::GzipFlags)     = bool(0x01 & flags)
+has_crc(flags::GzipFlags)     = bool(0x02 & flags)
+has_extra(flags::GzipFlags)   = bool(0x04 & flags)
+has_name(flags::GzipFlags)    = bool(0x08 & flags)
+has_comment(flags::GzipFlags) = bool(0x10 & flags)
+
+type GzipFile
+  header::GzipHeader
+  xlen::Uint16
+  extra::Vector{Uint8}
+  fname::Vector{Uint8}
+  fcomment::Vector{Uint8}
+  crc16::Uint16
+end
+
 BitStream(io::IOStream) = BitStream(io, BitVector(0))
 
 function read_header(io::IOStream)
