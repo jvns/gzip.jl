@@ -69,6 +69,7 @@ function Base.read(file::IO, ::Type{GzipFile})
     fname::ASCIIString = ""
     fcomment::ASCIIString = ""
     crc16::Uint16 = 0
+    # TODO: There are only 4 checks here. WHY?!?? Is this a bug?
     if has_extra(header.flags)
         xlen = read(file, Uint16)
         extra = ASCIIString(readbytes(file, xlen))
@@ -129,3 +130,4 @@ function read_huffman_stream(stream)
 end
 
 #read_huffman_stream(file)
+
