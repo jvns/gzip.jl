@@ -44,14 +44,15 @@ end
 
 let
   file = open("gunzip.c.gz", "r")
-  h = read(file, GzipFile)
+  read(file, GzipFile)
   bs = BitStream(file)
   bf = read(bs, BlockFormat)
 
   # These are the real values!
-  @test read_gzip_byte(bs, 5) == 23
-  @test read_gzip_byte(bs, 5) == 27
-  @test read_gzip_byte(bs, 4) == 8
+  huff_head = read(bs, HuffmanHeader)
+  @test huff_head.hlit == 23
+  @test huff_head.hdist == 27
+  @test huff_head.hclen == 8
   close(file)
 end
 

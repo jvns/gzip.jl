@@ -14,6 +14,17 @@ type GzipHeader
   os::Uint8
 end
 
+type HuffmanHeader
+    hlit::Uint8
+    hdist::Uint8
+    hclen::Uint8
+end
+
+Base.read(bs::BitStream, ::Type{HuffmanHeader}) = HuffmanHeader(
+    read_gzip_byte(bs, 5), 
+    read_gzip_byte(bs, 5), 
+    read_gzip_byte(bs, 4))
+
 type BlockFormat
   last::Bool
   block_type::BitArray{1} # length 2
@@ -98,7 +109,8 @@ end
 
 function read_gzip_byte(bs::BitStream, n)
     bits = reverse!(read_bits(bs, n))
-    return make_int(bits)
+    x::Uint8 = make_int(bits)
+    return x
 end
 
 function make_int(bv::BitVector)
