@@ -28,6 +28,7 @@ end
 let
   file = open("gunzip.c.gz", "r")
   h = read(file, GzipFile)
+  @test h.fname == "gunzip.c"
   close(file)
 end
 
