@@ -32,3 +32,13 @@ let
   close(file)
 end
 
+let
+  file = open("gunzip.c.gz", "r")
+  h = read(file, GzipFile)
+  bs = BitStream(file)
+  bf = read(bs, BlockFormat)
+  @test bf.last
+  @test bf.block_type == [0,1]
+  close(file)
+end
+

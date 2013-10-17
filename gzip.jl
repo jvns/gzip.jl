@@ -14,11 +14,21 @@ type GzipHeader
   os::Uint8
 end
 
+type BlockFormat
+  last::Bool
+  block_type::BitArray{1} # length 2
+end
+
 has_ext(flags::GzipFlags)     = bool(0x01 & flags)
 has_crc(flags::GzipFlags)     = bool(0x02 & flags)
 has_extra(flags::GzipFlags)   = bool(0x04 & flags)
 has_name(flags::GzipFlags)    = bool(0x08 & flags)
 has_comment(flags::GzipFlags) = bool(0x10 & flags)
+
+function Base.read(bs::BitStream, ::Type{BlockFormat})
+    bits = read_bits(bs, 3)
+    return BlockFormat(bits[1], bits[2:3])
+end
 
 type GzipFile
   header::GzipHeader
