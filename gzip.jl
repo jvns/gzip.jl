@@ -23,9 +23,9 @@ has_comment(flags::GzipFlags) = bool(0x10 & flags)
 type GzipFile
   header::GzipHeader
   xlen::Uint16
-  extra::Vector{Uint8}
-  fname::Vector{Uint8}
-  fcomment::Vector{Uint8}
+  extra::ASCIIString
+  fname::ASCIIString
+  fcomment::ASCIIString
   crc16::Uint16
 end
 
@@ -44,19 +44,19 @@ end
 function Base.read(file::IO, ::Type{GzipFile})
     header = read(file, GzipHeader)
     xlen::Uint16 = 0
-    extra::Vector{Uint8} = []
-    fname::Vector{Uint8} = []
-    fcomment::Vector{Uint8} = []
+    extra::ASCIIString = ""
+    fname::ASCIIString = ""
+    fcomment::ASCIIString = ""
     crc16::Uint16 = 0
     if has_extra(header.flags)
         xlen = read(file, Uint16)
-        extra = readbytes(file, xlen)
+        extra = ASCIIString(readbytes(file, xlen))
     end
     if has_name(header.flags)
-        fname = readuntil(file, 0x00)
+        fname = ASCIIString(readuntil(file, 0x00)[1:end-1])
     end
     if has_comment(header.flags)
-        fcomment = readuntil(file, 0x00)
+        fname = ASCIIString(readuntil(file, 0x00)[1:end-1])
     end
     if has_crc(header.flags)
         crc16 = read(file, Uint16)
