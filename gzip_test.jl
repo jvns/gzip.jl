@@ -25,3 +25,9 @@ let
   close(file)
 end
 
+let
+  file = open("gunzip.c.gz", "r")
+  h = read(file, GzipFile)
+  close(file)
+end
+

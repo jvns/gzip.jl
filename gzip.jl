@@ -29,7 +29,7 @@ type GzipFile
   crc16::Uint16
 end
 
-function Base.read(file::IOStream, GzipHeader)
+function Base.read(file::IO, ::Type{GzipHeader})
     id = readbytes(file, 2)
     compression_method = read(file, Uint8)
     flags = read(file, GzipFlags)
@@ -39,6 +39,29 @@ function Base.read(file::IOStream, GzipHeader)
     assert(id == [0x1f, 0x8b], "Gzip magic bytes not present")
     assert(compression_method == 8, "Unknown compression method")
     return GzipHeader(id, compression_method, flags, mtime, extra_flags, os)
+end
+
+function Base.read(file::IO, ::Type{GzipFile})
+    header = read(file, GzipHeader)
+    xlen::Uint16 = 0
+    extra::Vector{Uint8} = []
+    fname::Vector{Uint8} = []
+    fcomment::Vector{Uint8} = []
+    crc16::Uint16 = 0
+    if has_extra(header.flags)
+        xlen = read(file, Uint16)
+        extra = readbytes(file, xlen)
+    end
+    if has_name(header.flags)
+        fname = readuntil(file, 0x00)
+    end
+    if has_comment(header.flags)
+        fcomment = readuntil(file, 0x00)
+    end
+    if has_crc(header.flags)
+        crc16 = read(file, Uint16)
+    end
+    return GzipFile(header, xlen, extra, fname, fcomment, crc16)
 end
 
 BitStream(io::IOStream) = BitStream(io, BitVector(0))
