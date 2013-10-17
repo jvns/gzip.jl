@@ -10,8 +10,8 @@ type GzipHeader
   compression_method::Uint8
   flags::GzipFlags
   mtime::Vector{Uint8} # length 4
-  extra_flags::Vector{Uint8}
-  os::Vector{Uint8}
+  extra_flags::Uint8
+  os::Uint8
 end
 
 has_ext(flags::GzipFlags)     = bool(0x01 & flags)
@@ -29,11 +29,19 @@ type GzipFile
   crc16::Uint16
 end
 
-BitStream(io::IOStream) = BitStream(io, BitVector(0))
-
-function read_header(io::IOStream)
-    assert(readbytes(io, 2) == [0x1f, 0x8b])
+function Base.read(file::IOStream, GzipHeader)
+    id = readbytes(file, 2)
+    compression_method = read(file, Uint8)
+    flags = read(file, GzipFlags)
+    mtime = readbytes(file, 4)
+    extra_flags = read(file, Uint8)
+    os = read(file, Uint8)
+    assert(id == [0x1f, 0x8b], "Gzip magic bytes not present")
+    assert(compression_method == 8, "Unknown compression method")
+    return GzipHeader(id, compression_method, flags, mtime, extra_flags, os)
 end
+
+BitStream(io::IOStream) = BitStream(io, BitVector(0))
 
 function make_bitvector(n::Uint8)
     bits = BitVector(8)
