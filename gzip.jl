@@ -160,3 +160,12 @@ function make_bit_vector(n::Any, len::Any)
 end
 #read_huffman_stream(file)
 
+abstract Node
+type InternalNode <: Node
+    one::Node
+    zero::Node
+end
+type EmptyNode <:Node end
+type LeafNode <:Node
+    label::Integer
+end
