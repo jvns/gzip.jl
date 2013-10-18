@@ -185,3 +185,25 @@ function Base.getindex(node::InternalNode, code::BitArray)
     end
     return node.label
 end
+
+function add_item!(root::InternalNode, label, code::BitVector)
+    if length(code) == 1
+        root[code[1]] = LeafNode(label)
+        return
+    end
+    if root[code[1]] != EmptyNode()
+        add_item!(root[code[1]], label, code[2:end]) 
+        return
+    end
+    child = InternalNode()
+    root[code[1]] = child
+    add_item!(child, label, code[2:end])
+    
+end
+function create_huffman_tree(code_table)
+    root = InternalNode()
+    for (label, codes) = code_table
+        add_item!(root, label, codes)
+    end
+    return root
+end

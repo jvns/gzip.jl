@@ -56,3 +56,20 @@ let
   close(file)
 end
 
+
+let
+    file = open("gunzip.c.gz", "r")
+    read(file, GzipFile)
+    bs = BitStream(file)
+    bf = read(bs, BlockFormat)
+
+    head = read(bs, HuffmanHeader)
+    hclens = [read_gzip_byte(bs, 3) for i=1:(head.hclen+4)]
+  
+    code_table = create_code_table(hclens)
+    tree = create_huffman_tree(code_table)
+
+    for (label, code) = code_table
+         assert(tree[code] == label)
+    end
+end
