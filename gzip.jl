@@ -207,3 +207,12 @@ function create_huffman_tree(code_table)
     end
     return root
 end
+
+function read_first_tree(bs::BitStream, hclen)
+    hclens = [read_gzip_byte(bs, 3) for i=1:(hclen+4)]
+    code_table = create_code_table(hclens)
+    first_tree = create_huffman_tree(code_table)
+    return first_tree
+end
+
+typealias HuffmanTree InternalNode

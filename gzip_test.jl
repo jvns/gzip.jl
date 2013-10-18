@@ -73,3 +73,12 @@ let
          assert(tree[code] == label)
     end
 end
+
+let 
+    file = open("/home/bork/work/hackerschool/gzip.jl/gunzip.c.gz")
+    read(file, GzipFile)
+    bs = BitStream(file)
+    read(bs, BlockFormat)
+    head = read(bs, HuffmanHeader)
+    tree = read_first_tree(bs, head.hclen)
+end
