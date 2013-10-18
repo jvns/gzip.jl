@@ -130,6 +130,11 @@ function read_huffman_stream(stream)
 end
 
 function create_code_table(hclens, labels)
+    nonzero_indices = hclens .!= 0x00
+    labels = labels[1:length(hclens)]
+    hclens = hclens[nonzero_indices]
+    labels = labels[nonzero_indices]
+
     sorted_pairs = sort([x for x=zip(hclens, labels)])
     answer = Array(Uint16, length(hclens))
     prev_code_len = 0
@@ -233,16 +238,15 @@ function read_second_tree_codes(bs::BitStream, head::HuffmanHeader, tree::Huffma
     while i <= n_to_read
         code_len = read_huffman_bits(bs, tree)
         if code_len == 16
-            n_repeat = read_gzip_byte(bs, 3) + 2
+            n_repeat = read_gzip_byte(bs, 2) + 3
             vals[i:i+n_repeat-1] = vals[i-1]
             i += n_repeat
         elseif code_len == 17
             n_zeros = read_gzip_byte(bs, 3) + 3
             vals[i:i+n_zeros-1] = 0
             i += n_zeros
-        elseif code_len == 16
+        elseif code_len == 18
             n_zeros = read_gzip_byte(bs, 7) + 11
-            println("oh no sixteen!")
             vals[i:i+n_zeros-1] = 0
             i += n_zeros
         else
