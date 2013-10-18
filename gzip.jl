@@ -167,5 +167,21 @@ type InternalNode <: Node
 end
 type EmptyNode <:Node end
 type LeafNode <:Node
-    label::Integer
+    label
+end
+
+InternalNode() = InternalNode(EmptyNode(), EmptyNode())
+function Base.setindex!(node::InternalNode, value::Node, dir::Bool)
+    if dir == 0
+        node.zero = value
+    else
+        node.one = value
+    end
+end
+Base.getindex(node::InternalNode, dir::Bool) = dir ? node.one : node.zero
+function Base.getindex(node::InternalNode, code::BitArray)
+    for (i, bit) = enumerate(code)
+        node = node[bit]
+    end
+    return node.label
 end
