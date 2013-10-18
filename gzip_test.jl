@@ -66,7 +66,8 @@ let
     head = read(bs, HuffmanHeader)
     hclens = [read_gzip_byte(bs, 3) for i=1:(head.hclen+4)]
   
-    code_table = create_code_table(hclens)
+    labels = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]
+    code_table = create_code_table(hclens, labels)
     tree = create_huffman_tree(code_table)
 
     for (label, code) = code_table
@@ -82,3 +83,16 @@ let
     head = read(bs, HuffmanHeader)
     tree = read_first_tree(bs, head.hclen)
 end
+
+let 
+    file = open("/home/bork/work/hackerschool/gzip.jl/gunzip.c.gz")
+    read(file, GzipFile)
+    bs = BitStream(file)
+    read(bs, BlockFormat)
+    head = read(bs, HuffmanHeader)
+    tree = read_first_tree(bs, head.hclen)
+    codes = read_second_tree_codes(bs, head, tree)
+    @test all(codes[1:10] .== 0)
+    @test codes[11] == 7
+end
+

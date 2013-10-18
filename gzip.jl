@@ -129,9 +129,7 @@ function read_huffman_stream(stream)
     return (n_lit, n_dist, n_len)
 end
 
-function create_code_table(hclens)
-    # List of labels from the gzip spec. I know right.
-    labels = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]
+function create_code_table(hclens, labels)
     sorted_pairs = sort([x for x=zip(hclens, labels)])
     answer = Array(Uint16, length(hclens))
     prev_code_len = 0
@@ -210,9 +208,47 @@ end
 
 function read_first_tree(bs::BitStream, hclen)
     hclens = [read_gzip_byte(bs, 3) for i=1:(hclen+4)]
-    code_table = create_code_table(hclens)
+    # List of labels from the gzip spec. I know right.
+    labels = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]
+    code_table = create_code_table(hclens, labels)
     first_tree = create_huffman_tree(code_table)
     return first_tree
 end
 
 typealias HuffmanTree InternalNode
+
+function read_huffman_bits(bs::BitStream, tree::HuffmanTree)
+    node = tree
+    while typeof(node) != LeafNode
+        bit = read_bits(bs, 1)[1]
+        node = node[bit]
+    end
+    return node.label
+end
+
+function read_second_tree_codes(bs::BitStream, head::HuffmanHeader, tree::HuffmanTree)
+    n_to_read = head.hlit + head.hdist + 257
+    vals = Array(Uint8, n_to_read)
+    i = 1
+    while i <= n_to_read
+        code_len = read_huffman_bits(bs, tree)
+        if code_len == 16
+            n_repeat = read_gzip_byte(bs, 3) + 2
+            vals[i:i+n_repeat-1] = vals[i-1]
+            i += n_repeat
+        elseif code_len == 17
+            n_zeros = read_gzip_byte(bs, 3) + 3
+            vals[i:i+n_zeros-1] = 0
+            i += n_zeros
+        elseif code_len == 16
+            n_zeros = read_gzip_byte(bs, 7) + 11
+            println("oh no sixteen!")
+            vals[i:i+n_zeros-1] = 0
+            i += n_zeros
+        else
+            vals[i] = code_len
+            i += 1
+        end
+    end
+    return vals
+end
