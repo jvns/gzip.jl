@@ -232,7 +232,7 @@ function read_huffman_bits(bs::BitStream, tree::HuffmanTree)
 end
 
 function read_second_tree_codes(bs::BitStream, head::HuffmanHeader, tree::HuffmanTree)
-    n_to_read = head.hlit + head.hdist + 257
+    n_to_read = head.hlit + head.hdist + 258
     vals = Array(Uint8, n_to_read)
     i = 1
     while i <= n_to_read
