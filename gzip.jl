@@ -256,3 +256,57 @@ function read_second_tree_codes(bs::BitStream, head::HuffmanHeader, tree::Huffma
     end
     return vals
 end
+
+function read_distance_code(bs::BitStream, distance_tree)
+    extra_dist_addend = [
+        4, 6, 8, 12, 16, 24, 32, 48,
+        64, 96, 128, 192, 256, 384,
+        512, 768, 1024, 1536, 2048,
+        3072, 4096, 6144, 8192,
+        12288, 16384, 24576
+    ]
+    distance = read_huffman_bits(bs, distance_tree)
+    if distance > 3
+      extra_dist = read_gzip_byte(bs, div(distance - 2, 2))
+      distance = extra_dist + extra_dist_addend[ distance - 4 + 1]
+    end
+    return distance
+end
+
+function read_length_code(bs::BitStream, length_code)
+    extra_length_addend = [
+        11, 13, 15, 17, 19, 23, 27,
+        31, 35, 43, 51, 59, 67, 83,
+        99, 115, 131, 163, 195, 227
+    ]
+    len = 0
+    if (length_code < 265)
+        return length_code - 254
+    else
+        extra_bits = read_gzip_byte(bs, div(length_code - 261,  4))
+        return  extra_bits + extra_length_addend[length_code - 265 + 1]
+    end
+end
+
+function decode_gzip(bs::BitStream, literal_tree, distance_tree)
+    decoded_text = Array(Uint8, 0)
+    while true
+        code = read_huffman_bits(bs, literal_tree)
+        print("Code: ", code, "\n")
+        if code == 256
+            break
+        end
+        if code < 255
+            append!(decoded_text, [convert(Uint8, code)])
+        else
+            len = read_length_code(bs, code)
+            distance = read_distance_code(bs, distance_tree)
+            print("Length: ", len, ", Distance: ", distance, "\n")
+            append!(decoded_text, decoded_text[end-distance:end-distance+len-1])
+            println(ASCIIString(convert(Vector{Uint8}, decoded_text)))
+        end
+        println(ASCIIString(convert(Vector{Uint8}, decoded_text)))
+        println("------------")
+    end
+    print(ASCIIString(convert(Vector{Uint8}, decoded_text)))
+end
