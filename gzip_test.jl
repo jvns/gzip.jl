@@ -2,11 +2,11 @@ using Base.Test
 include("gzip.jl")
 
 let
-  file = open("gunzip.c.gz", "r")
+  file = open("test/gunzip.c.gz", "r")
   bs = BitStream(file)
-  @test read_gzip_byte(bs, 5) == 31
-  @test read_gzip_byte(bs, 5) == 24
-  @test read_gzip_byte(bs, 4) == 2
+  @test read_bits_inv(bs, 5) == 31
+  @test read_bits_inv(bs, 5) == 24
+  @test read_bits_inv(bs, 4) == 2
   close(file)
 end
 
@@ -20,20 +20,20 @@ let
 end
 
 let
-  file = open("gunzip.c.gz", "r")
+  file = open("test/gunzip.c.gz", "r")
   h = read(file, GzipHeader)
   close(file)
 end
 
 let
-  file = open("gunzip.c.gz", "r")
+  file = open("test/gunzip.c.gz", "r")
   h = read(file, GzipFile)
   @test h.fname == "gunzip.c"
   close(file)
 end
 
 let
-  file = open("gunzip.c.gz", "r")
+  file = open("test/gunzip.c.gz", "r")
   h = read(file, GzipFile)
   bs = BitStream(file)
   bf = read(bs, BlockFormat)
@@ -43,7 +43,7 @@ let
 end
 
 let
-  file = open("gunzip.c.gz", "r")
+  file = open("test/gunzip.c.gz", "r")
   read(file, GzipFile)
   bs = BitStream(file)
   bf = read(bs, BlockFormat)
@@ -58,13 +58,13 @@ end
 
 
 let
-    file = open("gunzip.c.gz", "r")
+    file = open("test/gunzip.c.gz", "r")
     read(file, GzipFile)
     bs = BitStream(file)
     bf = read(bs, BlockFormat)
 
     head = read(bs, HuffmanHeader)
-    hclens = [read_gzip_byte(bs, 3) for i=1:(head.hclen+4)]
+    hclens = [read_bits_inv(bs, 3) for i=1:(head.hclen+4)]
   
     labels = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]
     code_table = create_code_table(hclens, labels)
@@ -76,7 +76,7 @@ let
 end
 
 let 
-    file = open("/home/bork/work/hackerschool/gzip.jl/gunzip.c.gz")
+    file = open("test/gunzip.c.gz")
     read(file, GzipFile)
     bs = BitStream(file)
     read(bs, BlockFormat)
@@ -85,14 +85,15 @@ let
 end
 
 let 
-    file = open("/home/bork/work/hackerschool/gzip.jl/gunzip.c.gz")
+    code_f = open("test/code_lengths.txt")
+    real_code_strs = split(readall(code_f), '\n')
+    real_codes = [convert(Uint8, int(x)) for x=real_code_strs[1:308]]
+    file = open("test/gunzip.c.gz")
     read(file, GzipFile)
     bs = BitStream(file)
     read(bs, BlockFormat)
     head = read(bs, HuffmanHeader)
     tree = read_first_tree(bs, head.hclen)
     codes = read_second_tree_codes(bs, head, tree)
-    @test all(codes[1:10] .== 0)
-    @test codes[11] == 7
+    @test codes == real_codes
 end
-

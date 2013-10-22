@@ -21,9 +21,9 @@ type HuffmanHeader
 end
 
 Base.read(bs::BitStream, ::Type{HuffmanHeader}) = HuffmanHeader(
-    read_gzip_byte(bs, 5), 
-    read_gzip_byte(bs, 5), 
-    read_gzip_byte(bs, 4))
+    read_bits_inv(bs, 5), 
+    read_bits_inv(bs, 5), 
+    read_bits_inv(bs, 4))
 
 type BlockFormat
   last::Bool
@@ -108,7 +108,7 @@ function read_bits(stream::BitStream, n)
     return cached_bits[1:n]
 end
 
-function read_gzip_byte(bs::BitStream, n)
+function read_bits_inv(bs::BitStream, n)
     bits = reverse!(read_bits(bs, n))
     x::Uint8 = make_int(bits)
     return x
@@ -164,11 +164,14 @@ end
 #read_huffman_stream(file)
 
 abstract Node
+
 type InternalNode <: Node
     one::Node
     zero::Node
 end
+
 type EmptyNode <:Node end
+
 type LeafNode <:Node
     label
 end
@@ -181,8 +184,8 @@ function Base.setindex!(node::InternalNode, value::Node, dir::Bool)
         node.one = value
     end
 end
-Base.getindex(node::InternalNode, dir::Bool) = dir ? node.one : node.zero
-function Base.getindex(node::InternalNode, code::BitArray)
+Base.getindex(node::InternalNode, dir::Integer) = bool(dir) ? node.one : node.zero
+function Base.getindex(node::InternalNode, code)
     for (i, bit) = enumerate(code)
         node = node[bit]
     end
@@ -212,7 +215,7 @@ function create_huffman_tree(code_table)
 end
 
 function read_first_tree(bs::BitStream, hclen)
-    hclens = [read_gzip_byte(bs, 3) for i=1:(hclen+4)]
+    hclens = [read_bits_inv(bs, 3) for i=1:(hclen+4)]
     # List of labels from the gzip spec. I know right.
     labels = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]
     code_table = create_code_table(hclens, labels)
@@ -238,15 +241,15 @@ function read_second_tree_codes(bs::BitStream, head::HuffmanHeader, tree::Huffma
     while i <= n_to_read
         code_len = read_huffman_bits(bs, tree)
         if code_len == 16
-            n_repeat = read_gzip_byte(bs, 2) + 3
+            n_repeat = read_bits_inv(bs, 2) + 3
             vals[i:i+n_repeat-1] = vals[i-1]
             i += n_repeat
         elseif code_len == 17
-            n_zeros = read_gzip_byte(bs, 3) + 3
+            n_zeros = read_bits_inv(bs, 3) + 3
             vals[i:i+n_zeros-1] = 0
             i += n_zeros
         elseif code_len == 18
-            n_zeros = read_gzip_byte(bs, 7) + 11
+            n_zeros = read_bits_inv(bs, 7) + 11
             vals[i:i+n_zeros-1] = 0
             i += n_zeros
         else
@@ -267,7 +270,7 @@ function read_distance_code(bs::BitStream, distance_tree)
     ]
     distance = read_huffman_bits(bs, distance_tree)
     if distance > 3
-      extra_dist = read_gzip_byte(bs, div(distance - 2, 2))
+      extra_dist = read_bits_inv(bs, div(distance - 2, 2))
       distance = extra_dist + extra_dist_addend[ distance - 4 + 1]
     end
     return distance
@@ -283,7 +286,7 @@ function read_length_code(bs::BitStream, length_code)
     if (length_code < 265)
         return length_code - 254
     else
-        extra_bits = read_gzip_byte(bs, div(length_code - 261,  4))
+        extra_bits = read_bits_inv(bs, div(length_code - 261,  4))
         return  extra_bits + extra_length_addend[length_code - 265 + 1]
     end
 end
