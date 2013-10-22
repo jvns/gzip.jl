@@ -97,3 +97,8 @@ let
     codes = read_second_tree_codes(bs, head, tree)
     @test codes == real_codes
 end
+
+let
+    @test copy_text!([1,2,3], 2, 4) == [1,2,3,2,3,2,3]
+    @test copy_text!([1,2,3], 3, 3) == [1,2,3,1,2,3]
+end
