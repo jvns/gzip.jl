@@ -273,7 +273,7 @@ function read_distance_code(bs::BitStream, distance_tree)
       extra_dist = read_bits_inv(bs, div(distance - 2, 2))
       distance = extra_dist + extra_dist_addend[ distance - 4 + 1]
     end
-    return distance
+    return distance + 1
 end
 
 function read_length_code(bs::BitStream, length_code)
