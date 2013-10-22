@@ -21,9 +21,9 @@ type HuffmanHeader
 end
 
 Base.read(bs::BitStream, ::Type{HuffmanHeader}) = HuffmanHeader(
-    read_bits_inv(bs, 5), 
-    read_bits_inv(bs, 5), 
-    read_bits_inv(bs, 4))
+    convert(Uint8, read_bits_inv(bs, 5)), 
+    convert(Uint8, read_bits_inv(bs, 5)), 
+    convert(Uint8, read_bits_inv(bs, 4)))
 
 type BlockFormat
   last::Bool
@@ -110,8 +110,7 @@ end
 
 function read_bits_inv(bs::BitStream, n)
     bits = reverse!(read_bits(bs, n))
-    x::Uint8 = make_int(bits)
-    return x
+    return make_int(bits)
 end
 
 function make_int(bv::BitVector)
