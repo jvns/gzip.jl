@@ -326,3 +326,44 @@ function copy_text!(decoded_text, distance, len)
     end
     return decoded_text
 end
+
+function inflate_compressed_block(bs::BitStream)
+    head = read(bs, HuffmanHeader)
+    
+    first_tree = read_first_tree(bs, head.hclen)
+    codes = read_second_tree_codes(bs, head, first_tree)
+    
+    literal_codes = codes[1:257 + head.hlit]
+    lit_code_table = create_code_table(literal_codes, [0:length(literal_codes)-1])
+    literal_tree = create_huffman_tree(lit_code_table)
+    
+    distance_codes = codes[end-head.hdist:end]
+    dist_code_table = create_code_table(distance_codes, [0:length(distance_codes)-1])
+    distance_tree = create_huffman_tree(dist_code_table)
+    
+    return inflate(bs, literal_tree, distance_tree)
+end
+
+function inflate(bs::BitStream, literal_tree::HuffmanTree, distance_tree::HuffmanTree)
+    decoded_text = Array(Uint8, 0)
+    code = 0
+    while true
+        code = read_huffman_bits(bs, literal_tree)
+        if code == 256
+            break
+        end
+        if code < 255
+            append!(decoded_text, [convert(Uint8, code)])
+        else
+            len = read_length_code(bs, code)
+            distance = read_distance_code(bs, distance_tree)
+            copy_text!(decoded_text, distance, len)
+        end
+    end
+    return decoded_text
+end
+
+function read_block(bs::BitStream)
+    bf = read(bs, BlockFormat)
+    return inflate_compressed_block(bs)
+end
