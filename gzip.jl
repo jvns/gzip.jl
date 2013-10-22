@@ -362,9 +362,4 @@ function inflate(bs::BitStream, literal_tree::HuffmanTree, distance_tree::Huffma
     return decoded_text
 end
 
-function read_block(bs::BitStream)
-    bf = read(bs, BlockFormat)
-    return inflate_compressed_block(bs)
-end
-
 display_ascii(arr) = ASCIIString(convert(Vector{Uint8}, arr))
