@@ -10,6 +10,12 @@ let
   @test read_bits_inv(bs, 4) == 0b1101
 end
 
+let 
+    file = IOBuffer([0xff for i=1:100])
+    bs = BitStream(file)
+    @test read_bits_inv(bs, 32) == 2^32 - 1
+end
+
 let
     flags = 0b10001
     @test has_ext(flags)
