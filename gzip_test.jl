@@ -120,3 +120,11 @@ let
     @test actual_text == decoded_text
 end
 
+let
+    codes = [3,3,3,4,4,4,6,6]
+    code_table = create_code_table(codes, [1:length(codes)])
+    tree = create_huffman_tree(code_table)
+    for (label, code) = code_table
+         @test tree[code] == label
+    end
+end
