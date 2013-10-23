@@ -147,7 +147,7 @@ function create_code_table(hclens, labels)
         elseif code_len == prev_code_len
             answer[i] = answer[i-1] + 1
         else
-            answer[i] = (answer[i-1] + 1) << 1
+            answer[i] = (answer[i-1] + 1) << (code_len - prev_code_len)
         end
         prev_code_len = code_len
     end
