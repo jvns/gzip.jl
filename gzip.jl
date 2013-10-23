@@ -307,7 +307,27 @@ function copy_text!(decoded_text, distance, len)
     return decoded_text
 end
 
-function inflate_compressed_block(bs::BitStream)
+function inflate(file::IO, out::IO=STDOUT)
+    read(file, GzipMetadata) # Ignore headers
+    bs = BitStream(file)
+
+    decoded_text = Uint8[]
+    while true
+        bf = read(bs, BlockFormat)
+        if bf.block_type == [false, true]
+            inflate_block!(decoded_text, bs)
+        else
+            println("OH NO!")
+            break
+        end
+        if bf.last
+            break
+        end
+    end
+    write(out, decoded_text)
+end
+
+function inflate_block!(decoded_text, bs::BitStream)
     head = read(bs, HuffmanHeader)
     
     first_tree = read_first_tree(bs, head.hclen)
@@ -321,20 +341,18 @@ function inflate_compressed_block(bs::BitStream)
     dist_code_table = create_code_table(distance_codes, [0:length(distance_codes)-1])
     distance_tree = create_huffman_tree(dist_code_table)
     
-    return inflate(bs, literal_tree, distance_tree)
+    return inflate_block!(decoded_text, bs, literal_tree, distance_tree)
 end
 
-function inflate(bs::BitStream, literal_tree::HuffmanTree, distance_tree::HuffmanTree)
-    decoded_text = Array(Uint8, 0)
-    code = 0
+function inflate_block!(decoded_text, bs::BitStream, literal_tree::HuffmanTree, distance_tree::HuffmanTree)
     while true
         code = read_huffman_bits(bs, literal_tree)
-        if code == 256
+        if code == 256 # Stop code; end of block
             break
         end
-        if code < 255
+        if code < 255 # ASCII character
             append!(decoded_text, [convert(Uint8, code)])
-        else
+        else # Pointer to previous text
             len = read_length_code(bs, code)
             distance = read_distance_code(bs, distance_tree)
             copy_text!(decoded_text, distance, len)

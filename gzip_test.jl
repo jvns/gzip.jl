@@ -115,7 +115,7 @@ let
     bs = BitStream(file)
     read(file, GzipMetadata)
     read(bs, BlockFormat)
-    decoded_text = convert(ASCIIString, inflate_compressed_block(bs))
+    decoded_text = convert(ASCIIString, inflate_block!(Uint8[], bs))
     actual_text = readall(output_file)
     @test actual_text == decoded_text
 end
@@ -127,4 +127,15 @@ let
     for (label, code) = code_table
          @test tree[code] == label
     end
+end
+
+let 
+    file = open("test/american-english.gz")
+    output_file = open("test/american-english")
+    buf = IOBuffer()
+    inflate(file, buf)
+    seek(buf, 0)
+    decoded_text = readall(buf)
+    actual_text = readall(output_file)
+    @test actual_text == decoded_text
 end
