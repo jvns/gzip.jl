@@ -294,29 +294,6 @@ function read_length_code(bs::BitStream, length_code)
     end
 end
 
-function decode_gzip(bs::BitStream, literal_tree, distance_tree)
-    decoded_text = Array(Uint8, 0)
-    while true
-        code = read_huffman_bits(bs, literal_tree)
-        print("Code: ", code, "\n")
-        if code == 256
-            break
-        end
-        if code < 255
-            append!(decoded_text, [convert(Uint8, code)])
-        else
-            len = read_length_code(bs, code)
-            distance = read_distance_code(bs, distance_tree)
-            print("Length: ", len, ", Distance: ", distance, "\n")
-            append!(decoded_text, decoded_text[end-distance:end-distance+len-1])
-            println(ASCIIString(convert(Vector{Uint8}, decoded_text)))
-        end
-        println(ASCIIString(convert(Vector{Uint8}, decoded_text)))
-        println("------------")
-    end
-    print(ASCIIString(convert(Vector{Uint8}, decoded_text)))
-end
-
 function copy_text!(decoded_text, distance, len)
     j = length(decoded_text) - distance + 1
     i = length(decoded_text) + 1
