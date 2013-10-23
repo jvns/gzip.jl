@@ -108,3 +108,15 @@ let
     @test copy_text!([1,2,3], 2, 4) == [1,2,3,2,3,2,3]
     @test copy_text!([1,2,3], 3, 3) == [1,2,3,1,2,3]
 end
+
+let 
+    file = open("test/gunzip.c.gz")
+    output_file = open("test/gunzip.c")
+    bs = BitStream(file)
+    read(file, GzipMetadata)
+    read(bs, BlockFormat)
+    decoded_text = convert(ASCIIString, inflate_compressed_block(bs))
+    actual_text = readall(output_file)
+    @test actual_text == decoded_text
+end
+

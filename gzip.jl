@@ -24,6 +24,11 @@ type GzipMetadata
   crc16::Uint16
 end
 
+type BlockFormat
+  last::Bool
+  block_type::BitVector # length 2
+end
+
 type HuffmanHeader
     hlit::Uint8
     hdist::Uint8
@@ -35,10 +40,7 @@ Base.read(bs::BitStream, ::Type{HuffmanHeader}) = HuffmanHeader(
     convert(Uint8, read_bits_inv(bs, 5)), 
     convert(Uint8, read_bits_inv(bs, 4)))
 
-type BlockFormat
-  last::Bool
-  block_type::BitArray{1} # length 2
-end
+
 
 has_ext(flags::GzipFlags)     = bool(0x01 & flags)
 has_crc(flags::GzipFlags)     = bool(0x02 & flags)
