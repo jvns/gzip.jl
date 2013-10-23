@@ -350,7 +350,7 @@ function inflate_block!(decoded_text, bs::BitStream, literal_tree::HuffmanTree, 
         if code == 256 # Stop code; end of block
             break
         end
-        if code < 255 # ASCII character
+        if code <= 255 # ASCII character
             append!(decoded_text, [convert(Uint8, code)])
         else # Pointer to previous text
             len = read_length_code(bs, code)
