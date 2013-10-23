@@ -2,12 +2,12 @@ using Base.Test
 include("gzip.jl")
 
 let
-  file = open("test/gunzip.c.gz", "r")
+  # TODO: I don't like this dependence on the file
+  file = IOBuffer([0b11111010, 0b11110100])
   bs = BitStream(file)
-  @test read_bits_inv(bs, 5) == 31
-  @test read_bits_inv(bs, 5) == 24
-  @test read_bits_inv(bs, 4) == 2
-  close(file)
+  @test read_bits_inv(bs, 5) == 0b11010
+  @test read_bits_inv(bs, 5) == 0b00111
+  @test read_bits_inv(bs, 4) == 0b1101
 end
 
 let

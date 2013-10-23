@@ -1,7 +1,8 @@
 type BitStream
-    stream::IOStream
+    stream::IO
     bv::BitVector
 end
+BitStream(io::IO) = BitStream(io, BitVector(0))
 
 typealias GzipFlags Uint8
 
@@ -86,7 +87,6 @@ function Base.read(file::IO, ::Type{GzipFile})
     return GzipFile(header, xlen, extra, fname, fcomment, crc16)
 end
 
-BitStream(io::IOStream) = BitStream(io, BitVector(0))
 
 function make_bitvector(n::Uint8)
     bits = BitVector(8)

@@ -8,6 +8,7 @@ while true
     bf = read(bs, BlockFormat)
     if bf.block_type == [false, true]
 	    decoded_text = inflate_compressed_block(bs)
+	    print(display_ascii(decoded_text))
 	else:
 		println("OH NO!")
 		break
