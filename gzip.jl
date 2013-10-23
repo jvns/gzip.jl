@@ -15,6 +15,15 @@ type GzipHeader
   os::Uint8
 end
 
+type GzipMetadata
+  header::GzipHeader
+  xlen::Uint16
+  extra::ASCIIString
+  fname::ASCIIString
+  fcomment::ASCIIString
+  crc16::Uint16
+end
+
 type HuffmanHeader
     hlit::Uint8
     hdist::Uint8
@@ -42,14 +51,7 @@ function Base.read(bs::BitStream, ::Type{BlockFormat})
     return BlockFormat(bits[1], bits[2:3])
 end
 
-type GzipFile
-  header::GzipHeader
-  xlen::Uint16
-  extra::ASCIIString
-  fname::ASCIIString
-  fcomment::ASCIIString
-  crc16::Uint16
-end
+
 
 function Base.read(file::IO, ::Type{GzipHeader})
     id = readbytes(file, 2)
@@ -63,7 +65,7 @@ function Base.read(file::IO, ::Type{GzipHeader})
     return GzipHeader(id, compression_method, flags, mtime, extra_flags, os)
 end
 
-function Base.read(file::IO, ::Type{GzipFile})
+function Base.read(file::IO, ::Type{GzipMetadata})
     header = read(file, GzipHeader)
     xlen::Uint16 = 0
     extra::ASCIIString = ""
@@ -84,7 +86,7 @@ function Base.read(file::IO, ::Type{GzipFile})
     if has_crc(header.flags)
         crc16 = read(file, Uint16)
     end
-    return GzipFile(header, xlen, extra, fname, fcomment, crc16)
+    return GzipMetadata(header, xlen, extra, fname, fcomment, crc16)
 end
 
 

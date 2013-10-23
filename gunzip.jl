@@ -1,7 +1,7 @@
 include("gzip.jl")
 
 f = open(ARGS[1])
-read(f, GzipFile) # Ignore headers
+read(f, GzipMetadata) # Ignore headers
 bs = BitStream(f)
 
 while true

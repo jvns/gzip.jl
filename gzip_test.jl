@@ -33,14 +33,14 @@ end
 
 let
   file = open("test/gunzip.c.gz", "r")
-  h = read(file, GzipFile)
+  h = read(file, GzipMetadata)
   @test h.fname == "gunzip.c"
   close(file)
 end
 
 let
   file = open("test/gunzip.c.gz", "r")
-  h = read(file, GzipFile)
+  h = read(file, GzipMetadata)
   bs = BitStream(file)
   bf = read(bs, BlockFormat)
   @test bf.last
@@ -50,7 +50,7 @@ end
 
 let
   file = open("test/gunzip.c.gz", "r")
-  read(file, GzipFile)
+  read(file, GzipMetadata)
   bs = BitStream(file)
   bf = read(bs, BlockFormat)
 
@@ -65,7 +65,7 @@ end
 
 let
     file = open("test/gunzip.c.gz", "r")
-    read(file, GzipFile)
+    read(file, GzipMetadata)
     bs = BitStream(file)
     bf = read(bs, BlockFormat)
 
@@ -83,7 +83,7 @@ end
 
 let 
     file = open("test/gunzip.c.gz")
-    read(file, GzipFile)
+    read(file, GzipMetadata)
     bs = BitStream(file)
     read(bs, BlockFormat)
     head = read(bs, HuffmanHeader)
@@ -95,7 +95,7 @@ let
     real_code_strs = split(readall(code_f), '\n')
     real_codes = [convert(Uint8, int(x)) for x=real_code_strs[1:308]]
     file = open("test/gunzip.c.gz")
-    read(file, GzipFile)
+    read(file, GzipMetadata)
     bs = BitStream(file)
     read(bs, BlockFormat)
     head = read(bs, HuffmanHeader)
