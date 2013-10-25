@@ -345,17 +345,34 @@ function inflate_block!(decoded_text, bs::BitStream)
 end
 
 function inflate_block!(decoded_text, bs::BitStream, literal_tree::HuffmanTree, distance_tree::HuffmanTree)
+    i = 0
     while true
+        i += 1
         code = read_huffman_bits(bs, literal_tree)
         if code == 256 # Stop code; end of block
             break
         end
         if code <= 255 # ASCII character
             append!(decoded_text, [convert(Uint8, code)])
+            print(display_ascii([convert(Uint8, code)]))
+            flush(STDOUT)
         else # Pointer to previous text
             len = read_length_code(bs, code)
             distance = read_distance_code(bs, distance_tree)
             copy_text!(decoded_text, distance, len)
+            print("\033[31m")
+            print("{")
+            print((display_ascii(decoded_text[end-len+1: end])))
+            print("}")
+            print("\033[0m")
+            flush(STDOUT)
+        end
+        if (i < 100) 
+            sleep(0.20)
+        elseif (i < 200)
+            sleep(0.10)
+        else
+            sleep(0.05)
         end
     end
     return decoded_text
