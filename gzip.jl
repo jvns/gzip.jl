@@ -324,7 +324,7 @@ function inflate(file::IO, out::IO=STDOUT)
             break
         end
     end
-    write(out, decoded_text)
+    # write(out, decoded_text)
 end
 
 function inflate_block!(decoded_text, bs::BitStream)
@@ -360,19 +360,21 @@ function inflate_block!(decoded_text, bs::BitStream, literal_tree::HuffmanTree, 
             len = read_length_code(bs, code)
             distance = read_distance_code(bs, distance_tree)
             copy_text!(decoded_text, distance, len)
-            print("\033[31m")
+            # print("\033[31m")
+            print("<span class='red'>")
             print("{")
             print((display_ascii(decoded_text[end-len+1: end])))
             print("}")
-            print("\033[0m")
+            print("</span>")
+            # print("\033[0m")
             flush(STDOUT)
         end
         if (i < 100) 
-            sleep(0.20)
+            # sleep(0.20)
         elseif (i < 200)
-            sleep(0.10)
+            # sleep(0.10)
         else
-            sleep(0.05)
+            # sleep(0.05)
         end
     end
     return decoded_text
