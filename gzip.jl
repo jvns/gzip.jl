@@ -288,9 +288,11 @@ function read_length_code(bs::BitStream, length_code)
     len = 0
     if (length_code < 265)
         return length_code - 254
-    else
+    elseif (length_code < 285)
         extra_bits = read_bits_inv(bs, div(length_code - 261,  4))
         return  extra_bits + extra_length_addend[length_code - 265 + 1]
+    else
+        return 258
     end
 end
 
