@@ -62,8 +62,8 @@ function Base.read(file::IO, ::Type{GzipHeader})
     mtime = readbytes(file, 4)
     extra_flags = read(file, Uint8)
     os = read(file, Uint8)
-    assert(id == [0x1f, 0x8b], "Gzip magic bytes not present")
-    assert(compression_method == 8, "Unknown compression method")
+    @assert(id == [0x1f, 0x8b], "Gzip magic bytes not present")
+    @assert(compression_method == 8, "Unknown compression method")
     return GzipHeader(id, compression_method, flags, mtime, extra_flags, os)
 end
 
